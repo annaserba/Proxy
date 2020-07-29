@@ -4,30 +4,51 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Services.Converters
 {
     public class ProxyConverter : Services.Abstract.IProxyConverter
     {
-        public string ReadToEnd(Services.DTO.ProxyModel model)
+        public string GetProxy(Services.DTO.ProxyModel model)
         {
-            if (string.IsNullOrWhiteSpace(model.Uri.ToString()))
+            return ReplaceLinks(ReadToEnd(model), model);
+        }
+        private string ReadToEnd(Services.DTO.ProxyModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model?.UriOriginal.ToString()))
             {
                 return String.Empty;
             }
-            string result;
-            WebRequest request = WebRequest.Create(model.Uri);
+            string result= String.Empty;
+            WebRequest request = WebRequest.Create(new Uri(model.UriOriginal + model.Query));
             request.Method = "GET";
-            using (WebResponse response = request.GetResponse())
+            WebResponse response = null;
+            Stream stream = null;
+            StreamReader reader = null;
+            try
             {
-                using (Stream stream = response.GetResponseStream())
-                {
-                    StreamReader reader = new StreamReader(stream);
-                    result = reader.ReadToEnd();
-                }
+                response = request.GetResponse();
+                stream = response.GetResponseStream();
+                reader = new StreamReader(stream);
+                result = reader.ReadToEnd();
+            }
+            catch (Exception e)
+            {
+
+            }
+            finally
+            {
+                stream?.Close();
+                reader?.Close();
+                response?.Close();
             }
             return result;
         }
-
+        private string ReplaceLinks(string html, Services.DTO.ProxyModel model)
+        {
+            Regex regex = new Regex($"href=\"{ model?.UriOriginal}", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            return regex.Replace(html, $"href=\"{model?.UriProxy }");
+        }
     }
 }

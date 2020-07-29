@@ -17,10 +17,14 @@ namespace Proxy.Controllers
             _proxyConverter = proxyConverter;
         }
         // GET: /<controller>/
-        public IActionResult Index()
+        public IActionResult Index(string query)
         {
-            var model = new Services.DTO.ProxyModel() { Uri = new Uri("https://habr.com/") };
-            var result = _proxyConverter.ReadToEnd(model);
+            var model = new Services.DTO.ProxyModel() { 
+                UriOriginal = new Uri("https://habr.com/"), 
+                UriProxy= new Uri(HttpContext.Request.Scheme+"://"+ HttpContext.Request.Host.Value),
+                Query= query
+            };
+            var result = _proxyConverter.GetProxy(model);
             return View("Index", result);
         }
     }

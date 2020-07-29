@@ -6,6 +6,6 @@ namespace Services.Abstract
 {
     public interface IProxyConverter
     {
-        string ReadToEnd(Services.DTO.ProxyModel model);
+        string GetProxy(Services.DTO.ProxyModel model);
     }
 }
