@@ -6,8 +6,8 @@ namespace Services.DTO
 {
     public class ProxyModel
     {
-        public Uri UriOriginal { get; set; }
-        public Uri UriProxy { get; set; }
-        public string Query { get; set; }
+        public Uri FullOriginal { get; set; }
+        public SortedList<string, string> ReplacePatterns { get; } = new SortedList<string, string>();
+        
     }
 }

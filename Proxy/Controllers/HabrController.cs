@@ -19,12 +19,18 @@ namespace Proxy.Controllers
         // GET: /<controller>/
         public IActionResult Index(string query)
         {
-            var model = new Services.DTO.ProxyModel() { 
-                UriOriginal = new Uri("https://habr.com/"), 
-                UriProxy= new Uri(HttpContext.Request.Scheme+"://"+ HttpContext.Request.Host.Value),
-                Query= query
+            var model = new Services.DTO.ProxyModel()
+            {
+                FullOriginal = new Uri("https://habr.com/" + query)
             };
+            
+            model.ReplacePatterns.Add($"//{ model.FullOriginal.Host }",
+                $"//{ HttpContext.Request.Host }");
+            model.ReplacePatterns.Add($"\\/\\/{ model.FullOriginal.Host }",
+                $"//{ HttpContext.Request.Host }");
+
             var result = _proxyConverter.GetProxy(model);
+
             return View("Index", result);
         }
     }

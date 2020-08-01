@@ -16,12 +16,12 @@ namespace Services.Converters
         }
         private string ReadToEnd(Services.DTO.ProxyModel model)
         {
-            if (string.IsNullOrWhiteSpace(model?.UriOriginal.ToString()))
+            if (string.IsNullOrWhiteSpace(model?.FullOriginal.ToString()))
             {
                 return String.Empty;
             }
             string result= String.Empty;
-            WebRequest request = WebRequest.Create(new Uri(model.UriOriginal + model.Query));
+            WebRequest request = WebRequest.Create(model.FullOriginal);
             request.Method = "GET";
             WebResponse response = null;
             Stream stream = null;
@@ -47,8 +47,11 @@ namespace Services.Converters
         }
         private string ReplaceLinks(string html, Services.DTO.ProxyModel model)
         {
-            Regex regex = new Regex($"href=\"{ model?.UriOriginal}", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-            return regex.Replace(html, $"href=\"{model?.UriProxy }");
+            foreach (var pattern in model.ReplacePatterns)
+            {
+                html = new Regex(pattern.Key).Replace(html, pattern.Value);
+            }
+            return html;
         }
     }
 }

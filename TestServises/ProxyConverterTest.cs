@@ -20,8 +20,7 @@ namespace TestServises
         {
             var proxyConverter = new ProxyConverter();
             var result = proxyConverter.GetProxy(new Services.DTO.ProxyModel() { 
-                UriOriginal = new Uri("https://www.microsoft.com/"),
-                UriProxy= new Uri("https://localhost:44378/")
+                FullOriginal = new Uri("https://www.microsoft.com/")
             });
             Assert.IsNotEmpty(result);
         }
