@@ -19,7 +19,7 @@ namespace TestServises
         public void ProxyConverter()
         {
             var proxyConverter = new ProxyConverter();
-            var result = proxyConverter.GetProxy(new Services.DTO.ProxyModel() { 
+            var result = proxyConverter.GetProxyAsync(new Services.DTO.ProxyModel() { 
                 FullOriginal = new Uri("https://www.microsoft.com/")
             });
             Assert.IsNotEmpty(result);

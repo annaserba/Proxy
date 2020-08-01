@@ -17,20 +17,18 @@ namespace Proxy.Controllers
             _proxyConverter = proxyConverter;
         }
         // GET: /<controller>/
-        public IActionResult Index(string query)
+        public async Task<IActionResult> IndexAsync(string query)
         {
             var model = new Services.DTO.ProxyModel()
             {
                 FullOriginal = new Uri("https://habr.com/" + query)
             };
             
-            model.ReplacePatterns.Add($"//{ model.FullOriginal.Host }",
-                $"//{ HttpContext.Request.Host }");
-            model.ReplacePatterns.Add($"\\/\\/{ model.FullOriginal.Host }",
-                $"//{ HttpContext.Request.Host }");
-
-            var result = _proxyConverter.GetProxy(model);
-
+                model.ReplacePatterns.Add($"//{ model.FullOriginal.Host }",
+                    $"//{ HttpContext.Request.Host }");
+            model.ReplacePatterns.Add(@"\\/\\/" + model.FullOriginal.Host,
+                @"\/\/" + HttpContext.Request.Host);
+            var result = await _proxyConverter.GetProxyAsync(model).ConfigureAwait(false);
             return View("Index", result);
         }
     }

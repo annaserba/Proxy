@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -10,11 +11,16 @@ namespace Services.Converters
 {
     public class ProxyConverter : Services.Abstract.IProxyConverter
     {
-        public string GetProxy(Services.DTO.ProxyModel model)
+        private readonly ILogger<ProxyConverter> _logger;
+        public ProxyConverter(ILogger<ProxyConverter> logger)
         {
-            return ReplaceLinks(ReadToEnd(model), model);
+            _logger = logger;
         }
-        private string ReadToEnd(Services.DTO.ProxyModel model)
+        public async System.Threading.Tasks.Task<string> GetProxyAsync(Services.DTO.ProxyModel model)
+        {
+            return ReplaceLinks(await ReadToEndAsync(model).ConfigureAwait(false), model);
+        }
+        private async System.Threading.Tasks.Task<string> ReadToEndAsync(Services.DTO.ProxyModel model)
         {
             if (string.IsNullOrWhiteSpace(model?.FullOriginal.ToString()))
             {
@@ -28,14 +34,16 @@ namespace Services.Converters
             StreamReader reader = null;
             try
             {
-                response = request.GetResponse();
-                stream = response.GetResponseStream();
-                reader = new StreamReader(stream);
-                result = reader.ReadToEnd();
+                using (response = await request.GetResponseAsync().ConfigureAwait(false))
+                {
+                    stream = response.GetResponseStream();
+                    reader = new StreamReader(stream);
+                    result = reader.ReadToEnd();
+                }
             }
             catch (Exception e)
             {
-
+                _logger.LogDebug(1, e.Message);
             }
             finally
             {
@@ -49,7 +57,7 @@ namespace Services.Converters
         {
             foreach (var pattern in model.ReplacePatterns)
             {
-                html = new Regex(pattern.Key).Replace(html, pattern.Value);
+                html = new Regex(pattern.Key, RegexOptions.Multiline| RegexOptions.IgnoreCase).Replace(html, pattern.Value);
             }
             return html;
         }

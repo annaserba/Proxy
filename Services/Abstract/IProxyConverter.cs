@@ -6,6 +6,6 @@ namespace Services.Abstract
 {
     public interface IProxyConverter
     {
-        string GetProxy(Services.DTO.ProxyModel model);
+        System.Threading.Tasks.Task<string> GetProxyAsync(Services.DTO.ProxyModel model);
     }
 }
