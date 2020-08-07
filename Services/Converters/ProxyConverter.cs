@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿
+using AngleSharp;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -18,7 +21,7 @@ namespace Services.Converters
         }
         public async System.Threading.Tasks.Task<string> GetProxyAsync(Services.DTO.ProxyModel model)
         {
-            return ReplaceLinks(await ReadToEndAsync(model).ConfigureAwait(false), model);
+            return ApplyReplacePatterns(await ReadToEndAsync(model).ConfigureAwait(false), model);
         }
         private async System.Threading.Tasks.Task<string> ReadToEndAsync(Services.DTO.ProxyModel model)
         {
@@ -26,38 +29,49 @@ namespace Services.Converters
             {
                 return String.Empty;
             }
-            string result= String.Empty;
-            WebRequest request = WebRequest.Create(model.FullOriginal);
-            request.Method = "GET";
-            WebResponse response = null;
-            Stream stream = null;
-            StreamReader reader = null;
+            string result = String.Empty;
             try
             {
-                using (response = await request.GetResponseAsync().ConfigureAwait(false))
-                {
-                    stream = response.GetResponseStream();
-                    reader = new StreamReader(stream);
-                    result = reader.ReadToEnd();
-                }
+                var config = Configuration.Default.WithDefaultLoader();
+                var context = BrowsingContext.New(config);
+                var document = await context.OpenAsync(model?.FullOriginal.ToString()).ConfigureAwait(false);
+                
+                result = AddString(model.AddString, document);
             }
             catch (Exception e)
             {
                 _logger.LogDebug(1, e.Message);
             }
-            finally
-            {
-                stream?.Close();
-                reader?.Close();
-                response?.Close();
-            }
-            return result;
+            return result.Trim();
         }
-        private string ReplaceLinks(string html, Services.DTO.ProxyModel model)
+        private string AddString(string addString, AngleSharp.Dom.IDocument document)
+        {
+            if (!string.IsNullOrEmpty(addString)
+                && (document.ContentType=="text/html"|| document.ContentType == "application/json"))
+            {
+                var cellsLinq = document.All.Where(c => c.TagName != "SCRIPT" && c.TagName != "STYLE"&& c.TagName != "SVG"
+                && c.ChildElementCount == 0 && !string.IsNullOrWhiteSpace(c.TextContent));
+                foreach (var cell in cellsLinq)
+                {
+                    cell.TextContent = AddSymbolEndWorldInText(cell.TextContent, addString);
+                }
+            }
+            return document.DocumentElement.OuterHtml;
+        }
+        private string AddSymbolEndWorldInText(string text, string addText)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return string.Empty;
+            }
+            Regex regex = new Regex(@"\b\w{6}\b", RegexOptions.Multiline);
+            return regex.Replace(text, $"$&{addText}");
+        }
+        private string ApplyReplacePatterns(string html, Services.DTO.ProxyModel model)
         {
             foreach (var pattern in model.ReplacePatterns)
             {
-                html = new Regex(pattern.Key, RegexOptions.Multiline| RegexOptions.IgnoreCase).Replace(html, pattern.Value);
+                html = new Regex(pattern.Key, RegexOptions.Multiline | RegexOptions.IgnoreCase).Replace(html, pattern.Value);
             }
             return html;
         }

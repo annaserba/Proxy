@@ -8,6 +8,7 @@ namespace Services.DTO
     {
         public Uri FullOriginal { get; set; }
         public SortedList<string, string> ReplacePatterns { get; } = new SortedList<string, string>();
-        
+        public string AddString { get; set; }
+
     }
 }
