@@ -47,10 +47,10 @@ namespace Services.Converters
         private string AddString(string addString, AngleSharp.Dom.IDocument document)
         {
             if (!string.IsNullOrEmpty(addString)
-                && (document.ContentType=="text/html"|| document.ContentType == "application/json"))
+                && (document.ContentType == "text/html" || document.ContentType == "application/json"))
             {
-                var cellsLinq = document.All.Where(c => c.TagName != "SCRIPT" && c.TagName != "STYLE"&& c.TagName != "SVG"
-                && (c.ChildElementCount == 0||c.ClassList.Contains("post__text")||c.TagName=="A") && !string.IsNullOrWhiteSpace(c.TextContent));
+                var cellsLinq = document.All.Where(c => c.TagName != "SCRIPT" && c.TagName != "STYLE" && c.TagName != "SVG"
+                && (c.ChildElementCount == 0 || c.ClassList.Contains("post__text")) && !string.IsNullOrWhiteSpace(c.TextContent));
                 foreach (var cell in cellsLinq)
                 {
                     cell.TextContent = AddSymbolEndWorldInText(cell.TextContent, addString);
