@@ -50,7 +50,7 @@ namespace Services.Converters
                 && (document.ContentType=="text/html"|| document.ContentType == "application/json"))
             {
                 var cellsLinq = document.All.Where(c => c.TagName != "SCRIPT" && c.TagName != "STYLE"&& c.TagName != "SVG"
-                && c.ChildElementCount == 0 && !string.IsNullOrWhiteSpace(c.TextContent));
+                && (c.ChildElementCount == 0||c.ClassList.Contains("post__text")) && !string.IsNullOrWhiteSpace(c.TextContent));
                 foreach (var cell in cellsLinq)
                 {
                     cell.TextContent = AddSymbolEndWorldInText(cell.TextContent, addString);
