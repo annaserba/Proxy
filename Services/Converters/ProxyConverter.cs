@@ -49,11 +49,11 @@ namespace Services.Converters
             if (!string.IsNullOrEmpty(addString)
                 && (document.ContentType == "text/html" || document.ContentType == "application/json"))
             {
-                var cellsLinq = document.All.Where(c => c.TagName != "SCRIPT" && c.TagName != "STYLE" && c.TagName != "SVG"
-                && (c.ChildElementCount == 0 || c.ClassList.Contains("post__text")) && !string.IsNullOrWhiteSpace(c.TextContent));
-                foreach (var cell in cellsLinq)
+                var elements = document.All.Where(element => element.TagName != "SCRIPT" && element.TagName != "STYLE" && element.TagName != "SVG"
+                && (element.ChildElementCount == 0 || element.ClassList.Contains("post__text")) && !string.IsNullOrWhiteSpace(element.TextContent));
+                foreach (var element in elements)
                 {
-                    cell.TextContent = AddSymbolEndWorldInText(cell.TextContent, addString);
+                    element.TextContent = AddSymbolEndWorldInText(element.TextContent, addString);
                 }
             }
             return document.DocumentElement.OuterHtml;
